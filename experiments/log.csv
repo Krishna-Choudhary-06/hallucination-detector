@@ -1,0 +1,19 @@
+EXP_ID | features | model | accuracy | notes
+
+EXP_001,length_diff+word_count+repetition+number_diff,LogisticRegression,0.82,baseline with stratified 5-fold; small dataset so variance expected2
+
+EXP_002,length+word_count+repetition+number_diff (with symmetry),LogisticRegression,0.837,added reverse pair training improved stability and generalization
+
+EXP_003,length+word_count+repetition+number_diff+KL_divergence (with symmetry),LogisticRegression,0.863,KL divergence significantly improved detection by capturing distribution shift
+
+EXP_004,KL+number_mismatch+entity+entropy+SVM, SVM,0.768,performance dropped due to feature noise and model sensitivity; SVM underperformed on small dataset
+
+EXP_005,KL+number_diff+repetition+length (Logistic vs SVM comparison),Hybrid,0.832,model selection per fold shows instability; not valid for deployment but useful for comparison
+
+EXP_006,KL+number_mismatch+repetition+sentence_variance (tuned C),LogisticRegression,0.847,regularization tuning had minor impact; C=2 performed best but no significant gain over baseline
+
+EXP_007,KL+number_mismatch+repetition+sentence_variance (C=2),LogisticRegression,~0.86,reverted to simpler feature set improved performance; confirms strong features outperform complex additions
+
+EXP_008,modified features + higher C values,LogisticRegression,0.80,performance dropped due to removal of strong features and over-tuning; confirms importance of KL and number mismatch
+
+EXP_009,modified feature set (reduced core signals),LogisticRegression,0.81,stable but lower accuracy indicates loss of strong features like KL or improper implementation

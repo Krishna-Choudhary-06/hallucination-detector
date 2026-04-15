@@ -1,0 +1,61 @@
+Case:
+A: ...
+B: ...
+Predicted:
+Actual:
+
+Observation:
+
+To be filled after inspecting wrong predictions
+
+model confused due to similar structure but hidden factual inconsistency
+
+Case 1:
+A: ...
+B: ...
+Predicted: A
+Actual: B
+
+Observation:
+KL divergence failed when both texts had similar word distributions but different facts
+
+Case 2:
+Observation:
+Model fails when hallucination is subtle (same structure, slight fact change)
+
+Observation:
+Model performance dropped when adding multiple advanced features → indicates overfitting/noise
+
+Observation:
+SVM struggled due to small dataset and possibly unscaled features
+
+Observation:
+Model performance varies across folds → indicates feature instability
+
+
+Observation:
+SVM performs well only in certain splits → sensitive to data distribution
+
+Observation:
+Tuning C parameter did not significantly improve performance → indicates model already near optimal for current features
+
+Observation:
+Remaining errors likely due to missing features rather than model capacity
+
+Observation:
+Reverting to simpler feature set improved accuracy → complex features introduced noise
+
+Observation:
+Best performance comes from combination of distribution + factual inconsistency features
+
+Observation:
+Large variance across folds → features not robust
+
+Observation:
+Model degraded after removing key features → confirms their importance
+
+Observation:
+Stable but lower accuracy → model missing strong distinguishing features
+
+Observation:
+Feature simplification removed key hallucination signals

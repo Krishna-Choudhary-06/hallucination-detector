@@ -1,0 +1,34 @@
+- dataset is small → need more robust features
+- numbers seem important → explore numeric inconsistency deeper
+- try sentence structure features
+
+
+- KL divergence is strong → explore more distribution features
+- combine KL with entropy for stronger signal
+- need better entity-level consistency features
+
+- too many features hurt performance → need feature selection
+- SVM sensitive → requires scaling and tuning
+- KL divergence remains strongest feature
+- focus on high-signal features only
+
+- Logistic is more stable across folds
+- SVM occasionally performs better but inconsistent
+- dataset small → prefer stable models
+- need feature robustness instead of model switching
+
+- hyperparameter tuning has limited impact compared to feature engineering
+- C=2 works best → use in final model
+- focus should return to feature improvement
+
+- simpler feature set performs better than complex combinations
+- KL divergence + number mismatch are strongest signals
+- avoid overengineering features
+
+- removing strong features reduces performance significantly
+- KL divergence and number mismatch are critical
+- tuning without feature stability is harmful
+
+- stability improved but performance dropped → indicates loss of strong signal
+- must verify individual feature contribution
+- re-evaluate KL divergence implementation
