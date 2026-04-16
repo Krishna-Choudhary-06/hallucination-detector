@@ -13,14 +13,16 @@ from src.data.loader import load_dataset
 print("🚀 Training model...")
 df = load_dataset()
 
-model, scaler, feature_keys, _ = train_model(df, pair_features)
+model, scaler, feature_keys, vocab, _ = train_model(df, pair_features)
 
 
 # -------------------------
 # LOAD TEST DATA
 # -------------------------
 test_path = "data/raw/test"
-test_ids = sorted(os.listdir(test_path))
+
+# filter only valid folders
+test_ids = sorted([f for f in os.listdir(test_path) if f.startswith("article_")])
 
 
 predictions = []
@@ -29,15 +31,32 @@ for article in test_ids:
 
     folder = os.path.join(test_path, article)
 
-    with open(os.path.join(folder, "file_1.txt"), encoding="utf-8") as f:
+    file_A = os.path.join(folder, "file_1.txt")
+    file_B = os.path.join(folder, "file_2.txt")
+
+    # safety check
+    if not os.path.exists(file_A) or not os.path.exists(file_B):
+        print(f"⚠️ Skipping {article}, missing files")
+        continue
+
+    with open(file_A, encoding="utf-8") as f:
         text_A = f.read()
 
-    with open(os.path.join(folder, "file_2.txt"), encoding="utf-8") as f:
+    with open(file_B, encoding="utf-8") as f:
         text_B = f.read()
 
-    pred = final_predict(text_A, text_B, model, scaler, feature_keys, pair_features)
+    pred = final_predict(
+        text_A,
+        text_B,
+        model,
+        scaler,
+        feature_keys,
+        vocab,
+        pair_features
+    )
 
-    idx = int(article.split("_")[1])
+    # safer id extraction
+    idx = int(article.replace("article_", ""))
 
     predictions.append([idx, pred])
 

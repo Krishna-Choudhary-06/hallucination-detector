@@ -8,7 +8,7 @@ def main():
     df = load_dataset()
 
     print("⚙️ Training model...")
-    model, scaler, feature_keys, acc = train_model(df, pair_features)
+    model, scaler, feature_keys, vocab, acc = train_model(df, pair_features)
 
     print("🎯 Validation Accuracy:", acc)
 

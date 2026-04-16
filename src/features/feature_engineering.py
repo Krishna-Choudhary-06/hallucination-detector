@@ -2,19 +2,23 @@ import re
 import numpy as np
 from collections import Counter
 
+from src.features.tokenizer import tokenize
+from src.features.vocab import text_to_vector
+
 
 # -------------------------
 # BASIC FEATURES
 # -------------------------
 def basic_features(text):
-    words = text.split()
-    sentences = re.split(r'[.!?]', text)
+    tokens = tokenize(text)
 
-    word_count = len(words)
+    word_count = len(tokens)
+
+    sentences = re.split(r'[.!?]', text)
     sent_count = len(sentences)
 
     avg_sent_len = word_count / (sent_count + 1)
-    unique_ratio = len(set(words)) / (word_count + 1)
+    unique_ratio = len(set(tokens)) / (word_count + 1)
 
     return {
         "word_count": word_count,
@@ -24,24 +28,16 @@ def basic_features(text):
 
 
 # -------------------------
-# ENTITY OVERLAP
-# -------------------------
-def entity_overlap(a, b):
-    entA = set([w for w in a.split() if w.istitle()])
-    entB = set([w for w in b.split() if w.istitle()])
-    return len(entA & entB) / (len(entA | entB) + 1e-5)
-
-
-# -------------------------
 # ENTROPY
 # -------------------------
 def entropy(text):
-    words = text.split()
-    if len(words) == 0:
+    tokens = tokenize(text)
+
+    if len(tokens) == 0:
         return 0.0
 
-    counts = Counter(words)
-    probs = np.array(list(counts.values())) / len(words)
+    counts = Counter(tokens)
+    probs = np.array(list(counts.values())) / len(tokens)
 
     return -np.sum(probs * np.log(probs + 1e-9))
 
@@ -50,17 +46,17 @@ def entropy(text):
 # KL DIVERGENCE
 # -------------------------
 def kl_divergence(text_A, text_B):
-    words_A = text_A.split()
-    words_B = text_B.split()
+    tokens_A = tokenize(text_A)
+    tokens_B = tokenize(text_B)
 
-    if len(words_A) == 0 or len(words_B) == 0:
+    if len(tokens_A) == 0 or len(tokens_B) == 0:
         return 0.0
 
-    freq_A = Counter(words_A)
-    freq_B = Counter(words_B)
+    freq_A = Counter(tokens_A)
+    freq_B = Counter(tokens_B)
 
-    total_A = len(words_A)
-    total_B = len(words_B)
+    total_A = len(tokens_A)
+    total_B = len(tokens_B)
 
     vocab = set(freq_A.keys()).union(set(freq_B.keys()))
 
@@ -70,6 +66,7 @@ def kl_divergence(text_A, text_B):
     for word in vocab:
         p = (freq_A.get(word, 0) + epsilon) / total_A
         q = (freq_B.get(word, 0) + epsilon) / total_B
+
         kl += p * np.log(p / q)
 
     return kl
@@ -85,16 +82,9 @@ def number_diff(A, B):
 
 
 # -------------------------
-# SENTENCE COUNT DIFFERENCE
-# -------------------------
-def sentence_count_diff(A, B):
-    return abs(len(A.split('.')) - len(B.split('.')))
-
-
-# -------------------------
 # FINAL PAIR FEATURES
 # -------------------------
-def pair_features(text_A, text_B):
+def pair_features(text_A, text_B, vocab):
 
     fA = basic_features(text_A)
     fB = basic_features(text_B)
@@ -109,10 +99,8 @@ def pair_features(text_A, text_B):
     features["avg_sent_len_diff"] = fA["avg_sent_len"] - fB["avg_sent_len"]
 
     # -------------------------
-    # HIGH-SIGNAL FEATURES
+    # STRONG STATISTICAL SIGNALS
     # -------------------------
-    features["entity_overlap"] = entity_overlap(text_A, text_B)
-
     features["entropy_diff"] = np.tanh(
         entropy(text_A) - entropy(text_B)
     )
@@ -121,18 +109,28 @@ def pair_features(text_A, text_B):
     features["kl_BA"] = kl_divergence(text_B, text_A)
 
     # -------------------------
-    # FACTUAL + STRUCTURAL
+    # FACTUAL SIGNAL
     # -------------------------
     features["number_diff"] = number_diff(text_A, text_B)
-    features["sentence_count_diff"] = sentence_count_diff(text_A, text_B)
-
-    features["length_ratio"] = (len(text_A.split()) + 1) / (len(text_B.split()) + 1)
 
     # -------------------------
-    # SINGLE STRONG INTERACTION
+    # STRUCTURE SIGNAL
     # -------------------------
-    features["kl_number_interaction"] = (
-        features["kl_AB"] * features["number_diff"]
-    )
+    features["length_ratio"] = (len(tokenize(text_A)) + 1) / (len(tokenize(text_B)) + 1)
+
+    features["length_diff"] = len(text_A) - len(text_B)   # 🔥 NEW STRONG
+
+    # -------------------------
+    # LEXICAL SIGNAL (VERY IMPORTANT)
+    # -------------------------
+    vec_A = text_to_vector(text_A, vocab)
+    vec_B = text_to_vector(text_B, vocab)
+
+    features["bow_diff"] = sum(abs(a - b) for a, b in zip(vec_A, vec_B))
+
+    # -------------------------
+    # FINAL HIGH-SIGNAL INTERACTION
+    # -------------------------
+    features["kl_number_interaction"] = features["kl_AB"] * features["number_diff"]
 
     return features
